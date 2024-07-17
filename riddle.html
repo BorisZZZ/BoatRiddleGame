@@ -91,23 +91,46 @@
         .boat {
             animation: float 3s ease-in-out infinite;
         }
+        #setup-menu-selectors {
+            display:grid;
+            grid-template-columns: max-content max-content;
+            grid-gap:7px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 20%;  
+        }
+        #setup-menu-selectors  label       { text-align:center; }
+        #setup-menu-selectors  label:after { content: ":"; }
     </style>
 </head>
 <body>
     <div class="game-container">
         <h1>River Crossing Riddle</h1>
         <p>Get everyone across the river.<br/>The boat can carry at most either one adult or two children. Good Luck :)</p>
-        <div class="river">
-            <div id="leftBank" class="bank"></div>
-            <div id="boat" class="boat">
-                🚣
+        <div id="setup-menu">
+            <h2>Setup</h2>
+            <div id="setup-menu-selectors">
+                <label for="num-adults">Adults</label>
+                <input type="number" id="num-adults" min="0" max="10" value="2">
+                <label for="num-children">Children</label>
+                <input type="number" id="num-children" min="2" max="10" value="2">
+                <br>
             </div>
-            <span id="arrow" class="arrow">➡️</span>
-            <div id="rightBank" class="bank"></div>
+            <button id="start-game">Start Game</button>
         </div>
-        <button onclick="reset()">Reset</button>
-        <div id="message"></div>
-        <div id="moves"></div>
+        <div id="game-content" style="display: none;">
+            <div class="river">
+                <div id="leftBank" class="bank"></div>
+                <div id="boat" class="boat">
+                    🚣
+                </div>
+                <span id="arrow" class="arrow">➡️</span>
+                <div id="rightBank" class="bank"></div>
+            </div>
+            <button onclick="reset()">Reset</button>
+            <div id="message"></div>
+            <div id="moves"></div>
+        </div>
     </div>
     <script>
 
@@ -180,17 +203,10 @@
 
         };
 
-        const state = {
-            characters: [
-                new Character('🧑', 'left', 100),
-                new Character('🧑', 'left', 100),
-                new Character('👶', 'left', 50),
-                new Character('👶', 'left', 50)
-            ],
-            boatPosition: 'left',
-            boatWeight: 0,
-            moves: 0
-        };
+        const startButton = document.getElementById('start-game');
+        startButton.addEventListener('click', initGame);
+
+        const state = {};
 
         function updateDisplay(no_arrow = false) {
             const leftBank = document.getElementById('leftBank');
@@ -208,7 +224,7 @@
             if (!no_arrow && state.characters.filter(char => char.pos == 'boat').length > 0) {
                 arrow.style.display = 'block';
             }
-            if (state.characters.filter(char => char.pos == 'right').length === 4) {
+            if (state.characters.filter(char => char.pos == 'right').length === state.characters.length) {
                 document.getElementById('moves').textContent = `Congratulations! You solved the riddle in ${state.moves} moves!`;
             } else {
                 document.getElementById('moves').textContent = `Moves: ${state.moves}`;
@@ -240,19 +256,33 @@
             updateDisplay();
         }
 
-
-        function reset() {
-            state.characters = [
-                new Character('🧑', 'left', 100),
-                new Character('🧑', 'left', 100),
-                new Character('👶', 'left', 50),
-                new Character('👶', 'left', 50)
-            ];
+        function initGame() {
+            const setupMenu = document.getElementById('setup-menu');
+            const gameContent = document.getElementById('game-content');
+            numAdults = parseInt(document.getElementById('num-adults').value);
+            numChildren = parseInt(document.getElementById('num-children').value);
+            state.characters = [];
+            for (let i = 0; i < numAdults; i++) {
+                state.characters.push(new Character('🧑', 'left', 100));
+            }
+            for (let i = 0; i < numChildren; i++) {
+                state.characters.push(new Character('👶', 'left', 50));
+            }
             state.boatPosition = 'left';
             state.boatWeight = 0;
             state.moves = 0;
             document.getElementById('message').textContent = '';
+            setupMenu.style.display = 'none';
+            gameContent.style.display = 'block';
             updateDisplay();
+        }
+
+
+        function reset() {
+            const setupMenu = document.getElementById('setup-menu');
+            const gameContent = document.getElementById('game-content');
+            setupMenu.style.display = 'block';
+            gameContent.style.display = 'none';
         }
 
         document.getElementById('arrow').onclick = moveBoat;
